@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 from streamlit_autorefresh import st_autorefresh
 
-st.set_page_config(page_title="聖展金屬價格看板", page_icon="🔩", layout="wide")
+st.set_page_config(page_title="洪邦金屬價格看板", page_icon="🔩", layout="wide")
 st_autorefresh(interval=120000, key="auto_refresh")
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -69,7 +69,7 @@ now = datetime.now(TW_TZ)
 cu_kg = cu * twd / 0.453592 if cu else None
 
 st.markdown(f'''<div class="company-header">
-<div class="company-name">🔩 聖展金屬有限公司 — 即時物料價格看板</div>
+<div class="company-name">🔩 洪邦金屬股份有限公司 — 即時物料價格看板</div>
 <div class="update-time">更新時間：{now.strftime("%Y-%m-%d %H:%M:%S")} (UTC+8) ｜ 每 2 分鐘自動刷新</div>
 </div>''', unsafe_allow_html=True)
 
