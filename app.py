@@ -1,76 +1,226 @@
 import streamlit as st
 import yfinance as yf
+import requests
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 from streamlit_autorefresh import st_autorefresh
 
-st.set_page_config(page_title="金屬物料價格即時看板", page_icon="🔩", layout="wide")
-st_autorefresh(interval=300000, key="auto_refresh")
+── 設定 ──────────────────────────────────────────
+
+st.set_page_config(page_title=“聖展金屬價格看板”, page_icon=“🔩”, layout=“wide”)
+st_autorefresh(interval=120000, key="auto_refresh")
 TW_TZ = timezone(timedelta(hours=8))
-FX_URL = "https://api.exchangerate.fun/latest?base=USD"
 
-METALS = {
-    "🔶 銅 Copper": "HG=F",
-    "🔧 不鏽鋼 (鎳價 Nickel)": "JJN",
-}
+── 自訂 CSS（仿參考圖樣式）─────────────────────
 
-@st.cache_data(ttl=900)
-def fetch_price(ticker):
-    try:
-        t = yf.Ticker(ticker)
-        info = t.fast_info
-        p = info.get("lastPrice") or info.get("regularMarketPreviousClose")
-        prev = info.get("regularMarketPreviousClose") or p
-        chg = ((p - prev) / prev * 100) if p and prev and prev != 0 else 0
-        return {"price": p, "change_pct": chg}
-    except:
-        try:
-            hist = t.history(period="2d")
-            if len(hist) >= 2:
-                p = hist["Close"].iloc[-1]
-                prev = hist["Close"].iloc[-2]
-                return {"price": p, "change_pct": (p - prev) / prev * 100}
-        except:
-            return None
+st.markdown("""
+
+""", unsafe_allow_html=True)
+
+── 資料抓取 ──────────────────────────────────────
+
+@st.cache_data(ttl=600)
+def fetch_copper():
+try:
+t = yf. Ticker("HG=F")
+h = t.history(period="3d")
+if len(h) >= 2:
+cur = h['Close'].iloc[-1]
+prev = h['Close'].iloc[-2]
+return {"price": cur, "change_pct": ((cur-prev)/prev)*100}
+elif len(h) == 1:
+return {"price": h['Close'].iloc[-1], "change_pct": 0}
+except:
+pass
+return None
+
+@st.cache_data(ttl=600)
+def fetch_nickel():
+“”“鎳價 — 用 JJN ETN 作為參考，無法取得時用 LME 備用 API”“”
+try:
+t = yf. Ticker("JJN")
+h = t.history(period="3d")
+if len(h) >= 2 and h['Close'].iloc[-1] > 0:
+cur = h['Close'].iloc[-1]
+prev = h['Close'].iloc[-2]
+return {"price": cur, "change_pct": ((cur-prev)/prev)*100}
+except:
+pass
+return None
 
 @st.cache_data(ttl=900)
 def fetch_twd():
-    try:
-        r = __import__("requests").get(FX_URL, timeout=10)
-        return r.json()["rates"].get("TWD", 31.84)
-    except:
-        return 31.84
+try:
+r = requests.get("https://api.exchangerate.fun/latest?base=USD", timeout=10)
+return r.json()["rates"].get("TWD", 31.84)
+except:
+return 31.84
 
-st.title("🔩 金屬物料價格即時看板")
-st.caption(f"更新：{datetime.now(TW_TZ).strftime('%Y-%m-%d %H:%M:%S')} (UTC+8) ｜ 每 5 分鐘刷新")
+── 取得資料 ──────────────────────────────────────
+
 twd = fetch_twd()
-prices = {l: fetch_price(s) for l, s in METALS.items()}
+now = datetime.now(TW_TZ)
+copper = fetch_copper()
+nickel = fetch_nickel()
 
-c1, c2 = st.columns(2)
-for c, (l, s) in zip([c1, c2], METALS.items()):
-    item = prices.get(l)
-    with c:
-        if item and item.get("price"):
-            u, t = item["price"], item["price"] * twd
-            chg = item.get("change_pct", 0)
-            st.metric(label=l, value=f"US$ {u:,.2f}", delta=f"NT$ {t:,.0f} ｜ {'🔺' if chg>=0 else '🔻'} {chg:+.2f}%")
-            st.caption(f"USD/TWD = {twd:.2f}")
-        else:
-            st.metric(label=l, value="N/A", delta="無法取得報價")
+── HEADER ────────────────────────────────────────
 
-st.divider()
-st.subheader("📊 價格比較")
-cd = [{"金屬": l.split(" ")[0], "USD": prices[l]["price"], "TWD": prices[l]["price"]*twd} for l in METALS if prices.get(l) and prices[l].get("price")]
-if cd:
-    df = pd.DataFrame(cd).set_index("金屬")
-    t1, t2 = st.tabs(["USD", "TWD"])
-    t1.bar_chart(df["USD"], use_container_width=True)
-    t2.bar_chart(df["TWD"], use_container_width=True)
+st.markdown(f"""
 
-with st.sidebar:
-    st.header("📊 資訊")
-    st.metric("USD / TWD", f"{twd:.2f}")
-    st.caption("銅：COMEX 期貨 (HG=F)")
-    st.caption("鎳：iPath Nickel ETN (JJN)")
-    st.caption("匯率：exchangerate.fun")
-    st.info("💡 不鏽鋼以鎳價為成本參考，佔 304 不鏽鋼原料約 60%。")
+
+ 
+
+🔩 聖展金屬有限公司 — 即時物料價格看板
+
+ 
+
+更新時間：{now.strftime(‘%Y-%m-%d %H:%M:%S’)} (UTC+8) ｜ 每 2 分鐘自動刷新
+
+""", unsafe_allow_html=True)
+
+
+── 公告區 ────────────────────────────────────────
+
+st.markdown("""
+
+
+📌 注意事項：銅價為 COMEX 期貨即時報價；不鏽鋼以鎳價（JJN ETN）作為 304 不鏽鋼原料成本參考（鎳佔成本約 60%）。實際成交價依當日盤價與供應商報價為準。本看板僅供內部參考。
+
+
+""", unsafe_allow_html=True)
+
+
+── 主內容：三欄 ──────────────────────────────────
+
+c1, c2, c3 = st.columns([3, 3, 2])
+
+def render_table(title, label, spec, unit, data):
+st.markdown(f"### {title}")
+if data and data.get("price"):
+usd = data["price"]
+ntd = usd * twd
+chg = data["change_pct"]
+arrow = "▲" if chg >= 0 else "▼"
+cls = "price-up" if chg >= 0 else "price-down"
+st.markdown(f"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+品名
+
+
+
+規格
+
+
+
+單價 (USD)
+
+
+
+單價 (TWD)
+
+
+
+漲跌
+
+
+
+
+
+{label}
+
+
+
+{spec}
+
+
+
+${usd:,.2f}{unit}
+
+
+
+NT$ {ntd:,.0f}{unit}
+
+
+
+{arrow} {chg:+.2f}%
+
+
+""", unsafe_allow_html=True)
+else:
+st.warning(f“⚠️ 無法取得{label}即時報價，請確認資料來源”)
+
+
+
+with c1:
+render_table(“🟠 銅 Copper”, “紅銅”, “COMEX 期貨”, “/lb”, copper)
+
+with c2:
+render_table(“⚙️ 不鏽鋼參考價”, “鎳 (304 參考）”, “JJN ETN”, “”, nickel)
+
+with c3:
+st.markdown(“### 📋 匯率資訊”)
+st.markdown(f"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+USD / TWD
+
+
+
+{twd:.2f}
+
+
+
+
+
+""", unsafe_allow_html=True)
+st.markdown(“### 📞 聯絡資訊”)
+st.markdown('
+
+📧 待填寫
+📱 待填寫
+
+', unsafe_allow_html=True)
+with st.expander(“📌 免責聲明”):
+st.caption(“本看板價格僅供內部參考，實際交易依當日報價單為準。”)
+
+
+
+── 走勢圖 ────────────────────────────────────────
+
+st.markdown("---")
+st.subheader(“📊 近 7 日價格走勢（銅）”)
+try:
+hist = yf. Ticker("HG=F").history(period="7d")
+if not hist.empty:
+st.line_chart(pd. DataFrame({“銅 COMEX (USD/lb)”: hist[‘Close’]}), use_container_width=True)
+except:
+st.caption(“⚠️ 歷史資料暫無法載入”)
