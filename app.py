@@ -74,7 +74,7 @@ copper = fetch_copper()
 nickel = fetch_nickel()
 
 st.markdown(f'''<div class="company-header">
-<div class="company-name">🔩 聖展金屬有限公司 — 即時物料價格看板</div>
+<div class="company-name">🔩 洪邦金屬股份有限公司 — 即時物料價格看板</div>
 <div class="update-time">更新時間：{now.strftime("%Y-%m-%d %H:%M:%S")} (UTC+8) ｜ 每 2 分鐘自動刷新</div>
 </div>''', unsafe_allow_html=True)
 
