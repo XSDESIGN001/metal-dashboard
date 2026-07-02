@@ -85,10 +85,11 @@ if cu:
 else:
     st.warning("⚠️ 無法取得國際銅價")
 
-for group in ITEMS:
+for i, group in enumerate(ITEMS):
     rows = ""
+    loss = 0.875 if i == 1 else 1.0
     for name, pct in group:
-        price = f"NT$ {cu_kg * pct / 100:,.0f}" if cu_kg else "N/A"
+        price = f"NT$ {cu_kg * pct / 100 * loss:,.0f}" if cu_kg else "N/A"
         rows += f"<tr><td>{name}</td><td class='price-val'>{price}</td></tr>"
     st.markdown(f"""<table class="price-table">
 <tr><th>品名</th><th>即時牌價 (TWD/kg)</th></tr>{rows}</table>""", unsafe_allow_html=True)
