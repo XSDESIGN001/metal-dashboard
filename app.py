@@ -3,7 +3,6 @@
 import streamlit as st
 import yfinance as yf
 import requests
-import pandas as pd
 from datetime import datetime, timezone, timedelta
 from streamlit_autorefresh import st_autorefresh
 
@@ -24,7 +23,7 @@ ITEMS = [
         ("乾淨無油紅銅屑", 100), ("馬達銅 / 帶油紅銅屑", 98),
     ],
     [
-        ("砲金", 75), ("大青", 60),
+        ("砲金", 75), ("C3青銅屑 (油水4%↓)", 60), ("大青", 60),
     ],
 ]
 
@@ -44,6 +43,11 @@ st.markdown("""
 .price-table td { padding:7px 10px; text-align:center; border:1px solid #ddd;
     font-size:13px; color:#222; background:#fff; }
 .price-val { font-size:16px; font-weight:bold; color:#111; }
+.info-section { background:#fafafa; border:1px solid #e0e0e0;
+    border-radius:6px; padding:20px 24px; margin-bottom:16px; font-size:14px; color:#333; line-height:1.8; }
+.info-section b { color:#1a5276; }
+.footer-section { text-align:center; padding:20px; color:#666; font-size:13px; }
+.footer-section a { color:#2980b9; text-decoration:none; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -95,4 +99,41 @@ for name, price in SS_ITEMS:
 st.markdown(f"""<table class="price-table">
 <tr><th>品名</th><th>單價 (TWD/kg)</th></tr>{rows_ss}</table>""", unsafe_allow_html=True)
 
+# ====== 區塊 A：出貨規範 ======
+st.markdown("---")
+st.markdown("""
+<div class="info-section">
+<b>為了提供您最即時、高效的物料處置服務，請務必詳閱以下出貨規範：</b><br><br>
+<b>動態報價機制：</b>因國際銅價波動劇烈，本公司實際成交價格均依據客戶貨量、物料品質、訂單類別，並錨定倫敦金屬交易所（LME）之即時盤價進行動態浮動調整。<br><br>
+<b>出貨前請先加 LINE 預約：</b>為確保您的出貨權益，出貨前請直接加入官方 LINE，並提供物料照片與預估數量。雙方於線上確認當日報價後，方能為您安排後續的進貨、送貨時間。<br><br>
+<b>實際價格以現場判定為主：</b>來貨物料需經過基本整理，若現場實際卸貨之品質、純度與前期照片存在落差，本公司將以現場專業檢測後之最終報價為主。<br><br>
+<b>當日進料限額管控：</b>為維持廠區產能平衡，全品項訂單皆設有每日限額。若當日收貨量達上限即會停止接單，送貨前請務必先來電確認。<br><br>
+<b>訊息覆蓋提醒：</b>若官方 LINE 於商務尖峰時間未即時回覆，可能是訊息量過大遭到覆蓋，請您再次發送訊息，我們將安排專人以最快速度為您對接。<br><br>
+洪邦金屬為政府立案之甲級廢棄物清除機構，流程 100% 合法合規，值得信賴。我們不僅具備成熟的國內外多元金屬循環與貿易通路，更與國內頂級甲級處理廠深度合作，協助科技產業與製造業無縫對接 ESG 供應鏈審查，杜絕任何環保違規風險。<br><br>
+<b>連絡電話/LINE：09XX000123</b>
+</div>
+""", unsafe_allow_html=True)
 
+# ====== 區塊 B：免責聲明 ======
+st.markdown("""
+<div class="info-section">
+<b>【免責聲明】</b><br><br>
+<b>報價參考性質：</b>本官網及相關廣告看板上所展示之金屬價格、數據僅供海內外客戶參考，並不視為任何形式的成交承諾或要約。<br><br>
+<b>有效報價認定：</b>所有實際收購價格與合約內容，必須經由本公司業務窗口透過電話、官方 LINE 或書面確認後方為有效報價。在雙方正式確認前，本站任何資訊均不構成法律上的交易要約。
+</div>
+""", unsafe_allow_html=True)
+
+# ====== 區塊 C：公司資訊 + QR Code ======
+st.markdown("""
+<div class="footer-section">
+<h3>洪邦金屬股份有限公司</h3>
+<p><a href="https://www.hbmetal.com" target="_blank">www.hbmetal.com</a></p>
+<br>
+<div style="display:inline-block; border:1px solid #ddd; padding:10px; background:#fff;">
+    <div style="width:150px; height:150px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:12px;">
+        LINE<br>QR CODE
+    </div>
+</div>
+<p style="margin-top:8px; font-size:13px;">洪邦金屬官方LINE</p>
+</div>
+""", unsafe_allow_html=True)
