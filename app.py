@@ -13,8 +13,8 @@ TW_TZ = timezone(timedelta(hours=8))
 
 ITEMS = [
     [
-        ("磷碎", 125), ("紅碎", 109), ("青碎", 80),
-        ("青電", 77), ("青銅絲", 74),
+        ("磷碎", 110), ("紅碎", 95), ("青碎", 70),
+        ("青電", 67), ("青銅絲", 65),
     ],
     [
         ("光亮線", 109), ("光亮米", 108),
@@ -24,7 +24,7 @@ ITEMS = [
         ("乾淨無油紅銅屑", 100), ("馬達銅 / 帶油紅銅屑", 98),
     ],
     [
-        ("砲金", 86), ("大青", 68),
+        ("砲金", 75), ("大青", 60),
     ],
 ]
 
@@ -47,7 +47,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=60)
 def get_copper():
     try:
         h = yf.Ticker("HG=F").history(period="2d")
@@ -55,18 +55,18 @@ def get_copper():
     except:
         return None
 
-@st.cache_data(ttl=900)
+@st.cache_data(ttl=60)
 def get_twd():
     try:
         r = requests.get("https://api.exchangerate.fun/latest?base=USD", timeout=10)
-        return r.json()["rates"].get("TWD", 31.87)
+        return r.json()["rates"].get("TWD", 31.88)
     except:
-        return 31.87
+        return 31.88
 
 cu = get_copper()
 twd = get_twd()
 now = datetime.now(TW_TZ)
-cu_kg = cu * twd / 0.453592 if cu else None
+cu_kg = (cu * 2.20462) * twd if cu else None
 
 st.markdown(f'''<div class="company-header">
 <div class="company-name">🔩 洪邦金屬股份有限公司 — 即時物料價格看板</div>
