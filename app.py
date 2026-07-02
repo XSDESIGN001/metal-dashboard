@@ -1,7 +1,6 @@
 # app.py
 
 import streamlit as st
-import yfinance as yf
 import requests
 from datetime import datetime, timezone, timedelta
 from streamlit_autorefresh import st_autorefresh
@@ -9,6 +8,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="洪邦金屬價格看板", page_icon="🔩", layout="wide")
 st_autorefresh(interval=120000, key="auto_refresh")
 TW_TZ = timezone(timedelta(hours=8))
+API_KEY = st.secrets.get("METALS_DEV_KEY", "")
 
 ITEMS = [
     [
@@ -54,10 +54,18 @@ st.markdown("""
 @st.cache_data(ttl=60)
 def get_copper():
     try:
-        h = yf.Ticker("HG=F").history(period="2d")
-        return h["Close"].iloc[-1] if len(h) >= 1 else None
+        r = requests.get("https://metals.dev/api/v1/latest",
+            params={"api_key": API_KEY, "base": "USD", "symbols": "LME-XCU"}, timeout=15)
+        data = r.json()
+        inner = data.get("data", data.get("rates", {}))
+        val = inner.get("LME-XCU")
+        if val and isinstance(val, dict):
+            return val.get("price") or val.get("spot") or val.get("current")
+        if isinstance(val, (int, float)):
+            return val
     except:
-        return None
+        pass
+    return None
 
 @st.cache_data(ttl=60)
 def get_twd():
@@ -70,7 +78,7 @@ def get_twd():
 cu = get_copper()
 twd = get_twd()
 now = datetime.now(TW_TZ)
-cu_kg = (cu * 2.20462) * twd if cu else None
+cu_kg = (cu / 1000) * twd if cu else None
 
 st.markdown(f'''<div class="company-header">
 <div class="company-name">🔩 洪邦金屬股份有限公司 — 即時物料價格看板</div>
@@ -79,7 +87,7 @@ st.markdown(f'''<div class="company-header">
 
 if cu:
     st.markdown(f'''<div class="notice-box">
-📌 COMEX 銅：<b>${cu:,.2f}/lb</b> ｜ 匯率：<b>{twd:.2f}</b> ｜
+📌 LME 銅：<b>${cu:,.2f}/噸</b> ｜ 匯率：<b>{twd:.2f}</b> ｜
 純銅基準：<b>NT$ {cu_kg:,.0f}/kg</b> ｜ 牌價 = 基準價 × 品項%
 </div>''', unsafe_allow_html=True)
 else:
@@ -99,7 +107,6 @@ for name, price in SS_ITEMS:
 st.markdown(f"""<table class="price-table">
 <tr><th>品名</th><th>單價 (TWD/kg)</th></tr>{rows_ss}</table>""", unsafe_allow_html=True)
 
-# ====== 區塊 A：出貨規範 ======
 st.markdown("---")
 st.markdown("""
 <div class="info-section">
@@ -114,7 +121,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ====== 區塊 B：免責聲明 ======
 st.markdown("""
 <div class="info-section">
 <b>【免責聲明】</b><br><br>
@@ -123,7 +129,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ====== 區塊 C：公司資訊 + QR Code ======
 st.markdown("""
 <div class="footer-section">
 <h3>洪邦金屬股份有限公司</h3>
