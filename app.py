@@ -37,11 +37,13 @@ st.markdown("""
 .update-time { font-size:13px; color:#666; }
 .notice-box { background:#f5f9fc; border-left:4px solid #2980b9;
     padding:10px 16px; margin-bottom:18px; font-size:13px; border-radius:4px; color:#333; }
-.price-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+.price-table { width:100%; border-collapse:collapse; margin-bottom:20px; table-layout:fixed; }
 .price-table th { background:#e8e8e8; color:#222; padding:8px 10px;
     text-align:center; font-size:13px; border:1px solid #ccc; }
 .price-table td { padding:7px 10px; text-align:center; border:1px solid #ddd;
     font-size:13px; color:#222; background:#fff; }
+.price-table th:first-child, .price-table td:first-child { width:72%; }
+.price-table th:last-child, .price-table td:last-child { width:28%; }
 .price-val { font-size:16px; font-weight:bold; color:#111; }
 .info-section { background:#fafafa; border:1px solid #e0e0e0;
     border-radius:6px; padding:20px 24px; margin-bottom:16px; font-size:14px; color:#333; line-height:1.8; }
