@@ -95,11 +95,4 @@ for name, price in SS_ITEMS:
 st.markdown(f"""<table class="price-table">
 <tr><th>品名</th><th>單價 (TWD/kg)</th></tr>{rows_ss}</table>""", unsafe_allow_html=True)
 
-st.markdown("---")
-st.subheader("📊 COMEX 銅 近 7 日走勢")
-try:
-    hist = yf.Ticker("HG=F").history(period="7d")
-    if not hist.empty:
-        st.line_chart(pd.DataFrame({"銅 (USD/lb)": hist["Close"]}), use_container_width=True)
-except:
-    st.caption("⚠️ 無法載入")
+
